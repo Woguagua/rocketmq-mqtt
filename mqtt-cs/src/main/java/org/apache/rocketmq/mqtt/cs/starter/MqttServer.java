@@ -51,6 +51,10 @@ import org.apache.rocketmq.mqtt.cs.channel.AdaptiveTlsHandler;
 import org.apache.rocketmq.mqtt.cs.config.ConnectConf;
 import org.apache.rocketmq.mqtt.cs.protocol.ChannelPipelineLazyInit;
 import org.apache.rocketmq.mqtt.cs.protocol.MqttVersionHandler;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapDecoder;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapEncoder;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapHandler;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapPacketDispatcher;
 import org.apache.rocketmq.mqtt.cs.protocol.mqtt.MqttPacketDispatcher;
 import org.apache.rocketmq.mqtt.cs.protocol.mqtt5.Mqtt5PacketDispatcher;
 import org.apache.rocketmq.mqtt.cs.protocol.ssl.SslFactory;
@@ -309,10 +313,10 @@ public class MqttServer {
                     @Override
                     protected void initChannel(DatagramChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
-//                        pipeline.addLast("coap-handler", new CoapHandler());
-//                        pipeline.addLast("coap-decoder", new CoapDecoder());
-//                        pipeline.addLast("coap-encoder", new CoapEncoder());
-//                        pipeline.addLast("coap-dispatcher", new CoapPacketDispatcher());
+                        pipeline.addLast("coap-handler", new CoapHandler());
+                        pipeline.addLast("coap-decoder", new CoapDecoder());
+                        pipeline.addLast("coap-encoder", new CoapEncoder());
+                        pipeline.addLast("coap-dispatcher", new CoapPacketDispatcher());
                     }
                 });
         coapBootstrap.bind();
