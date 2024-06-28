@@ -1,2 +1,118 @@
-package org.apache.rocketmq.mqtt.cs.test.protocol.coap;public class TestCoapDecoder {
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.rocketmq.mqtt.cs.test.protocol.coap;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.DatagramPacket;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapDecoder;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapMessage;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+@RunWith(MockitoJUnitRunner.class)
+public class TestCoapDecoder {
+
+    @Mock
+    private ChannelHandlerContext channelHandlerContext;
+
+    @InjectMocks
+    private CoapDecoder coapDecoder;
+
+    private List<Object> out;
+
+    @Before
+    public void setUp() {
+        out = new ArrayList<>();
+    }
+
+    @Test
+    public void testDecodeCompleteMessage() {
+        ByteBuf in = Unpooled.buffer();
+        in.writeBytes(new byte[]{(byte)0x44, (byte)0x01, (byte)0x04, (byte)0xD2, 1, 2, 3, 4, (byte)0x54, 5, 6, 7, 8, (byte)0xFF, 0, 1});
+
+        InetSocketAddress senderAddress = new InetSocketAddress("195.0.30.1", 5683);
+        InetSocketAddress recipientAddress = new InetSocketAddress("127.0.0.1", 5683);
+        DatagramPacket packet = new DatagramPacket(in, recipientAddress, senderAddress);
+
+        try {
+            coapDecoder.decode(channelHandlerContext, packet, out);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        assertEquals(1, out.size());
+        assertNotNull(out.get(0));
+        assertTrue(out.get(0) instanceof CoapMessage);
+
+    }
+
+    @Test
+    public void testDecodeInsufficientBytes() {
+        ByteBuf in = Unpooled.buffer();
+        // Less than 4 bytes, which is the minimum length for a Coap message
+        in.writeByte(0x40);
+        InetSocketAddress senderAddress = new InetSocketAddress("195.0.30.1", 5683);
+        InetSocketAddress recipientAddress = new InetSocketAddress("127.0.0.1", 5683);
+        DatagramPacket packet = new DatagramPacket(in, recipientAddress, senderAddress);
+
+        try {
+            coapDecoder.decode(channelHandlerContext, packet, out);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        assertEquals(0, out.size());
+        // Verify that the method does not attempt to decode incomplete messages
+        verify(channelHandlerContext, times(0)).writeAndFlush(any());
+    }
+
+    @Test
+    public void testDecodeInvalidVersion() {
+        ByteBuf in = Unpooled.buffer();
+        // Invalid version field (assuming Coap version must be 1 as per RFC 7252)
+        in.writeBytes(new byte[]{(byte)0x80, 0x00, 0x00, 0x3C});
+        InetSocketAddress senderAddress = new InetSocketAddress("195.0.30.1", 5683);
+        InetSocketAddress recipientAddress = new InetSocketAddress("127.0.0.1", 5683);
+        DatagramPacket packet = new DatagramPacket(in, recipientAddress, senderAddress);
+
+        try {
+            coapDecoder.decode(channelHandlerContext, packet, out);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        assertEquals(0, out.size());
+        // Verify that method handles invalid version gracefully
+        verify(channelHandlerContext, times(0)).writeAndFlush(any());
+    }
+
 }
