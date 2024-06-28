@@ -16,29 +16,15 @@
  */
 package org.apache.rocketmq.mqtt.cs.protocol.coap;
 
-public class CoapOption {
-    private int optionNumber;
-    private byte[] optionValue;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.DatagramPacket;
+import io.netty.handler.codec.MessageToMessageDecoder;
 
-    public CoapOption(int optionNumber, byte[] optionValue) {
-        this.optionNumber = optionNumber;
-        this.optionValue = optionValue;
-    }
+import java.util.List;
 
+public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
+    @Override
+    protected void decode(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, List<Object> list) throws Exception {
 
-    public int getOptionNumber() {
-        return optionNumber;
-    }
-
-    public void setOptionNumber(int optionNumber) {
-        this.optionNumber = optionNumber;
-    }
-
-    public byte[] getOptionValue() {
-        return optionValue;
-    }
-
-    public void setOptionValue(byte[] optionValue) {
-        this.optionValue = optionValue;
     }
 }
