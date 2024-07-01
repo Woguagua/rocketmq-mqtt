@@ -27,20 +27,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
-
     /** Coap Version */
     public static final int VERSION = 1;
-
     /** Coap Division Marker for Payload */
     public static final int PAYLOAD_MARKER = 0xFF;
-
     /** Coap Token Length must be 0~8 */
     public static final int MAX_TOKEN_LENGTH = 8;
+
+    private CoapMessageType coapType;
+    private int coapTokenLength;
+    private CoapMessageCode coapCode;
+    private int coapMessageId;
+    private byte[] coapToken;
+    private List<CoapMessageOption> coapOptions;
+    private byte[] coapPayload;
+    private String errorContent;
+    private CoapMessageCode errorCode;
+    InetSocketAddress remoteAddress;
 
     @Override
     public void decode(ChannelHandlerContext ctx, DatagramPacket packet, List<Object> out) throws Exception {
 
         ByteBuf in = packet.content();
+        remoteAddress = packet.sender();
 
         // The length of Coap message is at least 4 bytes.
         if (in.readableBytes() < 4) {
@@ -59,9 +68,9 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
             in.skipBytes(in.readableBytes());
             return;
         }
-        int type = (firstByte >> 4) & 0x03;
-        int tokenLength = firstByte & 0x0F;
-        if (tokenLength > MAX_TOKEN_LENGTH) {
+        coapType = CoapMessageType.valueOf((firstByte >> 4) & 0x03);
+        coapTokenLength = firstByte & 0x0F;
+        if (coapTokenLength > MAX_TOKEN_LENGTH) {
             // todo: Return 4.00 Error Response
             // Skip unread bytes
             in.skipBytes(in.readableBytes());
@@ -69,31 +78,41 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         }
 
         // Handle code
-        int code = in.readUnsignedByte();
-        if (code <= 0 || code >= 5) {
+        try {
+            coapCode = CoapMessageCode.valueOf(in.readUnsignedByte());
+        } catch (IllegalArgumentException e) {
             // todo: Return 4.00 Error Response
             // Skip unread bytes
             in.skipBytes(in.readableBytes());
             return;
         }
-        // Handle messageID
-        int messageId = in.readUnsignedShort();
-
-        // Handle token
-        if (in.readableBytes() < tokenLength) {
-            // Return 4.00 Response
-            sendErrorResponse(ctx, type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON, tokenLength, CoapMessageCode.BAD_REQUEST, messageId, null, null, "Format-Error: The length of remaining readable bytes is less than tokenLength!", packet.sender());
+        if (!CoapMessageCode.isRequestCode(coapCode)) {
+            // todo: Return 4.00 Error Response
             // Skip unread bytes
             in.skipBytes(in.readableBytes());
             return;
         }
-        byte[] token = new byte[tokenLength];
-        in.readBytes(token);
+
+        // Handle messageID
+        coapMessageId = in.readUnsignedShort();
+
+        // Handle token
+        if (in.readableBytes() < coapTokenLength) {
+            // Return 4.00 Response
+            errorCode = CoapMessageCode.BAD_REQUEST;
+            errorContent = "Format-Error: The length of remaining readable bytes is less than tokenLength!";
+            sendErrorResponse(ctx);
+            // Skip unread bytes
+            in.skipBytes(in.readableBytes());
+            return;
+        }
+        coapToken = new byte[coapTokenLength];
+        in.readBytes(coapToken);
 
         // Handle options
         int nextByte = 0;
         int optionNumber = 0;
-        List<CoapMessageOption> options = new ArrayList<CoapMessageOption>();
+        coapOptions = new ArrayList<CoapMessageOption>();
         while (in.readableBytes() > 0) {
 
             nextByte = in.readUnsignedByte();
@@ -110,7 +129,10 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
                 optionDelta += 255 + in.readUnsignedShort();
             } else if (optionDelta == 15) {
                 // Return 4.00 Response
-                sendErrorResponse(ctx, type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON, tokenLength, CoapMessageCode.BAD_REQUEST, messageId, token, null, "Format-Error: OptionDelta can not be 15!", packet.sender());
+                errorCode = CoapMessageCode.BAD_REQUEST;
+                errorContent = "Format-Error: OptionDelta can not be 15!";
+                sendErrorResponse(ctx);
+                in.skipBytes(in.readableBytes());
                 return;
             }
 
@@ -118,7 +140,10 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
             if (!CoapMessageOptionNumber.isValid(optionNumber)) {
                 // Return 4.02 Response
-                sendErrorResponse(ctx, type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON, tokenLength, CoapMessageCode.BAD_OPTION, messageId, token, null, "Format-Error: Option number is not defined!", packet.sender());
+                errorCode = CoapMessageCode.BAD_OPTION;
+                errorContent = "Format-Error: Option number is not defined!";
+                sendErrorResponse(ctx);
+                in.skipBytes(in.readableBytes());
                 return;
             }
 
@@ -129,40 +154,45 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
                 optionLength += 255 + in.readUnsignedShort();
             } else if (optionLength == 15) {
                 // Return 4.00 Response
-                sendErrorResponse(ctx, type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON, tokenLength, CoapMessageCode.BAD_REQUEST, messageId, token, null, "Format-Error: OptionLength can not be 15!", packet.sender());
+                errorCode = CoapMessageCode.BAD_REQUEST;
+                errorContent = "Format-Error: OptionLength can not be 15!";
+                sendErrorResponse(ctx);
+                in.skipBytes(in.readableBytes());
                 return;
             }
 
             if (in.readableBytes() < optionLength) {
                 // Return 4.00 Response
-                sendErrorResponse(ctx, type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON, tokenLength, CoapMessageCode.BAD_REQUEST, messageId, token, null, "Format-Error: The number of readable bytes is less than optionLength", packet.sender());
+                errorCode = CoapMessageCode.BAD_REQUEST;
+                errorContent = "Format-Error: The number of readable bytes is less than optionLength";
+                sendErrorResponse(ctx);
+                in.skipBytes(in.readableBytes());
                 return;
             }
             byte[] optionValue = new byte[optionLength];
             in.readBytes(optionValue);
 
-            options.add(new CoapMessageOption(optionNumber, optionValue));
+            coapOptions.add(new CoapMessageOption(optionNumber, optionValue));
         }
 
         // Handle payload
-        byte[] payload = null;
         if (in.readableBytes() > 0) {
-            payload = new byte[in.readableBytes()];
-            in.readBytes(payload);
+            coapPayload = new byte[in.readableBytes()];
+            in.readBytes(coapPayload);
         }
 
-        CoapMessage coapMessage = new CoapMessage(version, type, tokenLength, code, messageId, token, options, payload, packet.sender());
+        CoapMessage coapMessage = new CoapMessage(version, coapType, coapTokenLength, coapCode, coapMessageId, coapToken, coapOptions, coapPayload, remoteAddress);
         out.add(coapMessage);
     }
 
-    public void sendErrorResponse(ChannelHandlerContext ctx, CoapMessageType type, int tokenLength, CoapMessageCode code, int messageId, byte[] token, List<CoapMessageOption> options, String errorContent, InetSocketAddress remoteAddress) {
+    public void sendErrorResponse(ChannelHandlerContext ctx) {
         CoapMessage response = new CoapMessage(
                 VERSION,
-                type,
-                tokenLength,
-                code,
-                messageId,
-                token,
+                coapType == CoapMessageType.CON ? CoapMessageType.ACK : CoapMessageType.NON,
+                coapTokenLength,
+                errorCode,
+                coapMessageId,
+                coapToken,
                 null,
                 errorContent.getBytes(StandardCharsets.UTF_8),
                 remoteAddress

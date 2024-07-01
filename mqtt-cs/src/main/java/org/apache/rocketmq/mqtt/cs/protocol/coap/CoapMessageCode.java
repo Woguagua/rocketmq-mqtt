@@ -69,6 +69,10 @@ public enum CoapMessageCode {
         }
     }
 
+    public static boolean isRequestCode(CoapMessageCode code) {
+        return (code == GET) || (code == POST) || (code == PUT) || (code == DELETE);
+    }
+
     static {
         CoapMessageCode[] values = values();
         VALUES = new CoapMessageCode[192];  // Using 192 since the highest defined code is 192

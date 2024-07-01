@@ -55,8 +55,22 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
         // todo: _channelRead0
     }
 
-    private  void _channelRead0(ChannelHandlerContext ctx, CoapMessage msg, HookResult coapUpstreamHookResult) {
-
+    private  void _channelRead0(ChannelHandlerContext ctx, CoapMessage msg, HookResult upstreamHookResult) {
+        switch (msg.getCode()) {
+            case GET:
+                coapGetHandler.doHandler(ctx, msg, upstreamHookResult);
+                break;
+            case POST:
+                coapPostHandler.doHandler(ctx, msg, upstreamHookResult);
+                break;
+            case PUT:
+                coapPutHandler.doHandler(ctx, msg, upstreamHookResult);
+                break;
+            case DELETE:
+                coapDeleteHandler.doHandler(ctx, msg, upstreamHookResult);
+                break;
+            default:
+        }
     }
 
     private boolean preHandler(ChannelHandlerContext ctx, CoapMessage msg) {
