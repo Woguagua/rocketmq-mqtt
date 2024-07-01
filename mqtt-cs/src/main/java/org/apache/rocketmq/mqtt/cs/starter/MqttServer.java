@@ -94,6 +94,9 @@ public class MqttServer {
     private Mqtt5PacketDispatcher mqtt5PacketDispatcher;
 
     @Resource
+    private CoapPacketDispatcher coapPacketDispatcher;
+
+    @Resource
     private WebSocketServerHandler webSocketServerHandler;
 
     @Resource
@@ -316,7 +319,7 @@ public class MqttServer {
                         pipeline.addLast("coap-handler", new CoapHandler());
                         pipeline.addLast("coap-decoder", new CoapDecoder());
                         pipeline.addLast("coap-encoder", new CoapEncoder());
-                        pipeline.addLast("coap-dispatcher", new CoapPacketDispatcher());
+                        pipeline.addLast("coap-dispatcher", coapPacketDispatcher);
                     }
                 });
         coapBootstrap.bind();

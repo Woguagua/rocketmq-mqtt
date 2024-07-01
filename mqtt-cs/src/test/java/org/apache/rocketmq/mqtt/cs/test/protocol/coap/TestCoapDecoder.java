@@ -21,7 +21,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapDecoder;
-import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

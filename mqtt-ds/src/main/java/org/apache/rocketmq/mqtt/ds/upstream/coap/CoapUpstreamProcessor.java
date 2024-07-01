@@ -1,4 +1,4 @@
-/*
+package org.apache.rocketmq.mqtt.ds.upstream.coap;/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -14,23 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.rocketmq.mqtt.cs.protocol.coap.handler;
 
-import io.netty.channel.ChannelHandlerContext;
-import org.apache.rocketmq.mqtt.common.hook.HookResult;
-import org.apache.rocketmq.mqtt.cs.protocol.CoapPacketHandler;
 import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
-import org.springframework.stereotype.Component;
+import org.apache.rocketmq.mqtt.common.hook.HookResult;
+import org.apache.rocketmq.remoting.exception.RemotingException;
 
-@Component
-public class CoapPutHandler implements CoapPacketHandler<CoapMessage> {
-    @Override
-    public boolean preHandler(ChannelHandlerContext ctx, CoapMessage coapMessage) {
-        return false;
-    }
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-    @Override
-    public void doHandler(ChannelHandlerContext ctx, CoapMessage coapMessage, HookResult upstreamHookResult) {
-
-    }
+public interface CoapUpstreamProcessor {
+    /**
+     * process mqtt upstream packet
+     * @param msg
+     * @return
+     */
+    CompletableFuture<HookResult> process(CoapMessage msg) throws RemotingException, com.alipay.sofa.jraft.error.RemotingException, ExecutionException, InterruptedException;
 }

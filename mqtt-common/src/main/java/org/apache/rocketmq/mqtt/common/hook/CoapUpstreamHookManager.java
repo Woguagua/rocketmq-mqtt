@@ -14,23 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.rocketmq.mqtt.cs.protocol.coap.handler;
 
-import io.netty.channel.ChannelHandlerContext;
-import org.apache.rocketmq.mqtt.common.hook.HookResult;
-import org.apache.rocketmq.mqtt.cs.protocol.CoapPacketHandler;
+package org.apache.rocketmq.mqtt.common.hook;
+
 import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
-import org.springframework.stereotype.Component;
 
-@Component
-public class CoapPutHandler implements CoapPacketHandler<CoapMessage> {
-    @Override
-    public boolean preHandler(ChannelHandlerContext ctx, CoapMessage coapMessage) {
-        return false;
-    }
+import java.util.concurrent.CompletableFuture;
 
-    @Override
-    public void doHandler(ChannelHandlerContext ctx, CoapMessage coapMessage, HookResult upstreamHookResult) {
+public interface CoapUpstreamHookManager {
+    /**
+     * add a hook
+     *
+     * @param index
+     * @param upstreamHook
+     */
+    void addHook(int index, CoapUpstreamHook upstreamHook);
 
-    }
+    /**
+     * do hook in upstream
+     *
+     * @param msg
+     * @return
+     */
+    CompletableFuture<HookResult> doUpstreamHook(CoapMessage msg);
+
 }

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.rocketmq.mqtt.cs.protocol.coap;
+package org.apache.rocketmq.mqtt.common.coap;
 
 import java.net.InetSocketAddress;
 import java.util.List;

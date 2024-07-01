@@ -20,6 +20,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageOption;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageType;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageCode;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageOptionNumber;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -43,9 +49,10 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
     private byte[] coapToken;
     private List<CoapMessageOption> coapOptions;
     private byte[] coapPayload;
+    InetSocketAddress remoteAddress;
+
     private String errorContent;
     private CoapMessageCode errorCode;
-    InetSocketAddress remoteAddress;
 
     @Override
     public void decode(ChannelHandlerContext ctx, DatagramPacket packet, List<Object> out) throws Exception {

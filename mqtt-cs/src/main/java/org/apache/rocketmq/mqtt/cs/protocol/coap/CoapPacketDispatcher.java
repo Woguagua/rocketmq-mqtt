@@ -16,18 +16,27 @@
  */
 package org.apache.rocketmq.mqtt.cs.protocol.coap;
 
+import io.netty.channel.ChannelException;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.hook.CoapUpstreamHookManager;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapDeleteHandler;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapGetHandler;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapPostHandler;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapPutHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.concurrent.CompletableFuture;
 
+@Component
 public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessage> {
 
+    private static Logger logger = LoggerFactory.getLogger(CoapPacketDispatcher.class);
     @Resource
     private CoapGetHandler coapGetHandler;
 
@@ -40,19 +49,46 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
     @Resource
     private CoapDeleteHandler coapDeleteHandler;
 
+    @Resource
+    private CoapUpstreamHookManager upstreamHookManager;
+
+
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CoapMessage msg) throws Exception {
-
-        // todo: check msg decode success
 
         boolean preResult = preHandler(ctx, msg);
         if (!preResult) {
             return;
         }
-
-        // todo: doUpstreamHook
-
-        // todo: _channelRead0
+        CompletableFuture<HookResult> upstreamHookResult;
+        try {
+            upstreamHookResult = upstreamHookManager.doUpstreamHook(msg);
+            if (upstreamHookResult == null) {
+                _channelRead0(ctx, msg, null);
+                return;
+            }
+        } catch (Throwable t) {
+            logger.error("", t);
+            throw new ChannelException(t.getMessage());
+        }
+        upstreamHookResult.whenComplete((hookResult, throwable) -> {
+            if (throwable != null) {
+                logger.error("", throwable);
+                ctx.fireExceptionCaught(new ChannelException(throwable.getMessage()));
+                return;
+            }
+            if (hookResult == null) {
+                ctx.fireExceptionCaught(new ChannelException("Coap UpstreamHook Result Unknown"));
+                return;
+            }
+            try {
+                _channelRead0(ctx, msg, hookResult);
+            } catch (Throwable t) {
+                logger.error("", t);
+                ctx.fireExceptionCaught(new ChannelException(t.getMessage()));
+            }
+        });
     }
 
     private  void _channelRead0(ChannelHandlerContext ctx, CoapMessage msg, HookResult upstreamHookResult) {
