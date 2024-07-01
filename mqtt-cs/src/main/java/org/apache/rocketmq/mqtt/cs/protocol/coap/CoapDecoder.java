@@ -20,13 +20,22 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import org.apache.rocketmq.mqtt.cs.config.CoapConf;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
+
+    /** Coap Version */
+    public static final int VERSION = 1;
+
+    /** Coap Division Marker for Payload */
+    public static final int PAYLOAD_MARKER = 0xFF;
+
+    /** Coap Token Length must be 0~8 */
+    public static final int MAX_TOKEN_LENGTH = 8;
+
     @Override
     public void decode(ChannelHandlerContext ctx, DatagramPacket packet, List<Object> out) throws Exception {
 
@@ -34,28 +43,36 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
         // The length of Coap message is at least 4 bytes.
         if (in.readableBytes() < 4) {
-            // Return 4.00 Error
+            // todo: Return 4.00 Error Response
+            // Skip unread bytes
+            in.skipBytes(in.readableBytes());
             return;
         }
 
         // Handle first byte, including version, type, and token length.
         int firstByte = in.readUnsignedByte();
         int version = (firstByte >> 6) & 0x03;
-        if (version != CoapConf.VERSION) {
-            // Return 4.00 Error
+        if (version != VERSION) {
+            // todo: Return 4.00 Error Response
+            // Skip unread bytes
+            in.skipBytes(in.readableBytes());
             return;
         }
         int type = (firstByte >> 4) & 0x03;
         int tokenLength = firstByte & 0x0F;
-        if (tokenLength > CoapConf.MAX_TOKEN_LENGTH) {
-            // Return 4.00 Error
+        if (tokenLength > MAX_TOKEN_LENGTH) {
+            // todo: Return 4.00 Error Response
+            // Skip unread bytes
+            in.skipBytes(in.readableBytes());
             return;
         }
 
         // Handle code
         int code = in.readUnsignedByte();
         if (code <= 0 || code >= 5) {
-            // Return 4.00 Error
+            // todo: Return 4.00 Error Response
+            // Skip unread bytes
+            in.skipBytes(in.readableBytes());
             return;
         }
         // Handle messageID
@@ -65,10 +82,10 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         if (in.readableBytes() < tokenLength) {
             // Return 4.00 Response
             CoapMessage response = new CoapMessage(
-                    CoapConf.VERSION,
-                    type == CoapConf.Type.CON.getValue() ? CoapConf.Type.ACK.getValue() : CoapConf.Type.NON.getValue(),
+                    VERSION,
+                    type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON,
                     tokenLength,
-                    CoapConf.ResponseCodeClientError.BAD_REQUEST.getValue(),
+                    CoapMessageCode.BAD_REQUEST,
                     messageId,
                     null,
                     null,
@@ -76,6 +93,9 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
                     packet.sender()
             );
             ctx.writeAndFlush(response);
+            // todo: Sliping unread bytes
+            // Skip unread bytes
+            in.skipBytes(in.readableBytes());
             return;
         }
         byte[] token = new byte[tokenLength];
@@ -84,11 +104,11 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         // Handle options
         int nextByte = 0;
         int optionNumber = 0;
-        List<CoapOption> options = new ArrayList<CoapOption>();
+        List<CoapMessageOption> options = new ArrayList<CoapMessageOption>();
         while (in.readableBytes() > 0) {
 
             nextByte = in.readUnsignedByte();
-            if (nextByte == CoapConf.PAYLOAD_MARKER) {
+            if (nextByte == PAYLOAD_MARKER) {
                 break;
             }
 
@@ -102,10 +122,10 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
             } else if (optionDelta == 15) {
                 // Return 4.00 Response
                 CoapMessage response = new CoapMessage(
-                        CoapConf.VERSION,
-                        type == CoapConf.Type.CON.getValue() ? CoapConf.Type.ACK.getValue() : CoapConf.Type.NON.getValue(),
+                        VERSION,
+                        type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON,
                         tokenLength,
-                        CoapConf.ResponseCodeClientError.BAD_REQUEST.getValue(),
+                        CoapMessageCode.BAD_REQUEST,
                         messageId,
                         token,
                         null,
@@ -118,13 +138,13 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
             optionNumber += optionDelta;    // current optionNumber = last optionNumber + optionDelta
 
-            if (!CoapConf.OptionNumber.isValid(optionNumber)) {
+            if (!CoapMessageOptionNumber.isValid(optionNumber)) {
                 // Return 4.02 Response
                 CoapMessage response = new CoapMessage(
-                        CoapConf.VERSION,
-                        type == CoapConf.Type.CON.getValue() ? CoapConf.Type.ACK.getValue() : CoapConf.Type.NON.getValue(),
+                        VERSION,
+                        type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON,
                         tokenLength,
-                        CoapConf.ResponseCodeClientError.BAD_OPTION.getValue(),
+                        CoapMessageCode.BAD_OPTION,
                         messageId,
                         token,
                         null,
@@ -143,10 +163,10 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
             } else if (optionLength == 15) {
                 // Return 4.00 Response
                 CoapMessage response = new CoapMessage(
-                        CoapConf.VERSION,
-                        type == CoapConf.Type.CON.getValue() ? CoapConf.Type.ACK.getValue() : CoapConf.Type.NON.getValue(),
+                        VERSION,
+                        type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON,
                         tokenLength,
-                        CoapConf.ResponseCodeClientError.BAD_REQUEST.getValue(),
+                        CoapMessageCode.BAD_REQUEST,
                         messageId,
                         token,
                         null,
@@ -160,10 +180,10 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
             if (in.readableBytes() < optionLength) {
                 // Return 4.00 Response
                 CoapMessage response = new CoapMessage(
-                        CoapConf.VERSION,
-                        type == CoapConf.Type.CON.getValue() ? CoapConf.Type.ACK.getValue() : CoapConf.Type.NON.getValue(),
+                        VERSION,
+                        type == CoapMessageType.CON.value() ? CoapMessageType.ACK : CoapMessageType.NON,
                         tokenLength,
-                        CoapConf.ResponseCodeClientError.BAD_REQUEST.getValue(),
+                        CoapMessageCode.BAD_REQUEST,
                         messageId,
                         token,
                         null,
@@ -176,7 +196,7 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
             byte[] optionValue = new byte[optionLength];
             in.readBytes(optionValue);
 
-            options.add(new CoapOption(optionNumber, optionValue));
+            options.add(new CoapMessageOption(optionNumber, optionValue));
         }
 
         // Handle payload

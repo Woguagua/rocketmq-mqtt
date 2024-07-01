@@ -21,16 +21,16 @@ import java.util.List;
 
 public class CoapMessage {
     private int version;
-    private int type;
+    private CoapMessageType type;
     private int tokenLength;
-    private int code;
+    private CoapMessageCode code;
     private int messageId;
     private byte[] token;
-    private List<CoapOption> options;
+    private List<CoapMessageOption> options;
     private byte[] payload;
     private InetSocketAddress remoteAddress;
 
-    public CoapMessage(int version, int type, int tokenLength, int code, int messageId, byte[] token, List<CoapOption> options, byte[] payload, InetSocketAddress remoteAddress) {
+    public CoapMessage(int version, CoapMessageType type, int tokenLength, CoapMessageCode code, int messageId, byte[] token, List<CoapMessageOption> options, byte[] payload, InetSocketAddress remoteAddress) {
         this.version = version;
         this.type = type;
         this.tokenLength = tokenLength;
@@ -41,6 +41,11 @@ public class CoapMessage {
         this.payload = payload;
         this.remoteAddress = remoteAddress;
     }
+
+    public CoapMessage(int version, int type, int tokenLength, int code, int messageId, byte[] token, List<CoapMessageOption> options, byte[] payload, InetSocketAddress remoteAddress) {
+        this(version, CoapMessageType.valueOf(type), tokenLength, CoapMessageCode.valueOf(code), messageId, token, options, payload, remoteAddress);
+    }
+
     public int getVersion() {
         return version;
     }
@@ -49,11 +54,11 @@ public class CoapMessage {
         this.version = version;
     }
 
-    public int getType() {
+    public CoapMessageType getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(CoapMessageType type) {
         this.type = type;
     }
 
@@ -65,11 +70,11 @@ public class CoapMessage {
         this.tokenLength = tokenLength;
     }
 
-    public int getCode() {
+    public CoapMessageCode getCode() {
         return code;
     }
 
-    public void setCode(int code) {
+    public void setCode(CoapMessageCode code) {
         this.code = code;
     }
 
@@ -89,11 +94,11 @@ public class CoapMessage {
         this.token = token;
     }
 
-    public List<CoapOption> getOptions() {
+    public List<CoapMessageOption> getOptions() {
         return options;
     }
 
-    public void setOptions(List<CoapOption> options) {
+    public void setOptions(List<CoapMessageOption> options) {
         this.options = options;
     }
 

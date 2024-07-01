@@ -27,19 +27,19 @@ public class CoapEncoder extends MessageToByteEncoder<CoapMessage> {
     public void encode(ChannelHandlerContext ctx, CoapMessage msg, ByteBuf out) throws Exception {
 
         // Handle Version | Type | TokenLength
-        byte firstByte = (byte)((msg.getVersion() << 6) | (msg.getType() << 4) | (msg.getTokenLength() & 0x0F));
+        byte firstByte = (byte)((msg.getVersion() << 6) | (msg.getType().value() << 4) | (msg.getTokenLength() & 0x0F));
         out.writeByte(firstByte);
 
         // Handle Code, MessageID, Token
-        out.writeByte(msg.getCode());
+        out.writeByte(msg.getCode().value());
         out.writeShort(msg.getMessageId());
         out.writeBytes(msg.getToken());
 
         // Handle Options
         int prevOptionNumber = 0;
-        for (CoapOption option : msg.getOptions()) {
-            int optionDelta = option.getOptionNumber() - prevOptionNumber;
-            prevOptionNumber = option.getOptionNumber();
+        for (CoapMessageOption option : msg.getOptions()) {
+            int optionDelta = option.getOptionNumber().value() - prevOptionNumber;
+            prevOptionNumber = option.getOptionNumber().value();
             int optionLength = option.getOptionValue().length;
 
             if (optionDelta < 13) {

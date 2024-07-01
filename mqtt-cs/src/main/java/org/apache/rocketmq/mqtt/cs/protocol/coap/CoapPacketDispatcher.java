@@ -19,12 +19,40 @@ package org.apache.rocketmq.mqtt.cs.protocol.coap;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapDeleteHandler;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapGetHandler;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapPostHandler;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapPutHandler;
+
+import javax.annotation.Resource;
 
 public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessage> {
+
+    @Resource
+    private CoapGetHandler coapGetHandler;
+
+    @Resource
+    private CoapPostHandler coapPostHandler;
+
+    @Resource
+    private CoapPutHandler coapPutHandler;
+
+    @Resource
+    private CoapDeleteHandler coapDeleteHandler;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CoapMessage msg) throws Exception {
 
+        // todo: check msg decode success
+
+        boolean preResult = preHandler(ctx, msg);
+        if (!preResult) {
+            return;
+        }
+
+        // todo: doUpstreamHook
+
+        // todo: _channelRead0
     }
 
     private  void _channelRead0(ChannelHandlerContext ctx, CoapMessage msg, HookResult coapUpstreamHookResult) {
@@ -32,7 +60,18 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
     }
 
     private boolean preHandler(ChannelHandlerContext ctx, CoapMessage msg) {
-        return true;
+        switch (msg.getCode()) {
+            case GET:
+                return coapGetHandler.preHandler(ctx, msg);
+            case POST:
+                return coapPostHandler.preHandler(ctx, msg);
+            case PUT:
+                return coapPutHandler.preHandler(ctx, msg);
+            case DELETE:
+                return coapDeleteHandler.preHandler(ctx, msg);
+            default:
+                return false;
+        }
     }
 
 }

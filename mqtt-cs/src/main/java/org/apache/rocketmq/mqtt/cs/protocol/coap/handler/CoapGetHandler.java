@@ -14,31 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.rocketmq.mqtt.cs.protocol.coap;
+package org.apache.rocketmq.mqtt.cs.protocol.coap.handler;
 
-public class CoapOption {
-    private int optionNumber;
-    private byte[] optionValue;
+import io.netty.channel.ChannelHandlerContext;
+import org.apache.rocketmq.mqtt.common.hook.HookResult;
+import org.apache.rocketmq.mqtt.cs.protocol.CoapPacketHandler;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapMessage;
+import org.springframework.stereotype.Component;
 
-    public CoapOption(int optionNumber, byte[] optionValue) {
-        this.optionNumber = optionNumber;
-        this.optionValue = optionValue;
+@Component
+public class CoapGetHandler implements CoapPacketHandler<CoapMessage> {
+    @Override
+    public boolean preHandler(ChannelHandlerContext ctx, CoapMessage coapMessage) {
+        return false;
     }
 
+    @Override
+    public void doHandler(ChannelHandlerContext ctx, CoapMessage coapMessage, HookResult upstreamHookResult) {
 
-    public int getOptionNumber() {
-        return optionNumber;
-    }
-
-    public void setOptionNumber(int optionNumber) {
-        this.optionNumber = optionNumber;
-    }
-
-    public byte[] getOptionValue() {
-        return optionValue;
-    }
-
-    public void setOptionValue(byte[] optionValue) {
-        this.optionValue = optionValue;
     }
 }

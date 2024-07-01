@@ -21,7 +21,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapEncoder;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapMessage;
-import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapOption;
+import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapMessageOption;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,8 +48,8 @@ public class TestCoapEncoder {
 
     @Before
     public void setUp() {
-        CoapOption option = new CoapOption(5, new byte[]{5, 6, 7, 8});
-        List<CoapOption> options = new ArrayList<>();
+        CoapMessageOption option = new CoapMessageOption(5, new byte[]{5, 6, 7, 8});
+        List<CoapMessageOption> options = new ArrayList<>();
         InetSocketAddress remoteAddress = new InetSocketAddress("195.0.30.1", 1234);
         options.add(option);
         msg = new CoapMessage(1, 0, 4, 64, 1234, new byte[]{1, 2, 3, 4}, options, new byte[]{0, 1}, remoteAddress);
