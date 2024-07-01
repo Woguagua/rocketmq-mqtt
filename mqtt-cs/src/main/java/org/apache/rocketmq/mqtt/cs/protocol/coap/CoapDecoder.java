@@ -26,6 +26,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+// todo: Dealing with messageID and token when the request is wrong.
+// todo: Dealing with exception throwing when the request is wrong.
 public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
     /** Coap Version */
     public static final int VERSION = 1;
@@ -53,7 +55,9 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
         // The length of Coap message is at least 4 bytes.
         if (in.readableBytes() < 4) {
-            // todo: Return 4.00 Error Response
+            errorCode = CoapMessageCode.BAD_REQUEST;
+            errorContent = "Format-Error: The length of header must be at least 4 bytes!";
+            sendErrorResponse(ctx);
             // Skip unread bytes
             in.skipBytes(in.readableBytes());
             return;
@@ -63,7 +67,9 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         int firstByte = in.readUnsignedByte();
         int version = (firstByte >> 6) & 0x03;
         if (version != VERSION) {
-            // todo: Return 4.00 Error Response
+            errorCode = CoapMessageCode.BAD_REQUEST;
+            errorContent = "Format-Error: Version must be 1!";
+            sendErrorResponse(ctx);
             // Skip unread bytes
             in.skipBytes(in.readableBytes());
             return;
@@ -71,7 +77,9 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         coapType = CoapMessageType.valueOf((firstByte >> 4) & 0x03);
         coapTokenLength = firstByte & 0x0F;
         if (coapTokenLength > MAX_TOKEN_LENGTH) {
-            // todo: Return 4.00 Error Response
+            errorCode = CoapMessageCode.BAD_REQUEST;
+            errorContent = "Format-Error: The length of token is too long!";
+            sendErrorResponse(ctx);
             // Skip unread bytes
             in.skipBytes(in.readableBytes());
             return;
@@ -81,13 +89,17 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         try {
             coapCode = CoapMessageCode.valueOf(in.readUnsignedByte());
         } catch (IllegalArgumentException e) {
-            // todo: Return 4.00 Error Response
+            errorCode = CoapMessageCode.BAD_REQUEST;
+            errorContent = "Format-Error: The code is not defined!";
+            sendErrorResponse(ctx);
             // Skip unread bytes
             in.skipBytes(in.readableBytes());
             return;
         }
         if (!CoapMessageCode.isRequestCode(coapCode)) {
-            // todo: Return 4.00 Error Response
+            errorCode = CoapMessageCode.BAD_REQUEST;
+            errorContent = "Format-Error: The code must be a request code!";
+            sendErrorResponse(ctx);
             // Skip unread bytes
             in.skipBytes(in.readableBytes());
             return;
@@ -189,7 +201,7 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         CoapMessage response = new CoapMessage(
                 VERSION,
                 coapType == CoapMessageType.CON ? CoapMessageType.ACK : CoapMessageType.NON,
-                coapTokenLength,
+                coapToken == null ? 0 : coapTokenLength,
                 errorCode,
                 coapMessageId,
                 coapToken,
