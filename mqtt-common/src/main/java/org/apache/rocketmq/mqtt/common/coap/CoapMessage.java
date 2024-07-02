@@ -17,6 +17,7 @@
 package org.apache.rocketmq.mqtt.common.coap;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.List;
 
 public class CoapMessage {
@@ -116,5 +117,20 @@ public class CoapMessage {
 
     public void setRemoteAddress(InetSocketAddress remoteAddress) {
         this.remoteAddress = remoteAddress;
+    }
+
+    @Override
+    public String toString() {
+        return "CoapMessage{" +
+                "version=" + version +
+                ", type=" + type +
+                ", tokenLength=" + tokenLength +
+                ", code=" + code +
+                ", messageId=" + messageId +
+                ", token=" + Arrays.toString(token) +
+                ", options=" + options +
+                ", payload=" + Arrays.toString(payload) +
+                ", remoteAddress=" + remoteAddress +
+                '}';
     }
 }

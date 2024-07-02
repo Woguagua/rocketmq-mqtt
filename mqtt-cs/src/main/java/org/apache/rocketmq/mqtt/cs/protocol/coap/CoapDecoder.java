@@ -202,8 +202,8 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         }
 
         CoapMessage coapMessage = new CoapMessage(version, coapType, coapTokenLength, coapCode, coapMessageId, coapToken, coapOptions, coapPayload, remoteAddress);
-        System.out.println("Decode a message successfully: " + coapMessage);
-        sendTestResponse(ctx);
+//        System.out.println("Decode a message successfully: " + coapMessage);
+//        sendTestResponse(ctx);
         out.add(coapMessage);
     }
 
