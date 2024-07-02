@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.rocketmq.mqtt.common.coap.CoapMessageOption;
 import org.apache.rocketmq.mqtt.common.coap.CoapMessageType;
 import org.apache.rocketmq.mqtt.common.coap.CoapMessageCode;
@@ -201,6 +202,8 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         }
 
         CoapMessage coapMessage = new CoapMessage(version, coapType, coapTokenLength, coapCode, coapMessageId, coapToken, coapOptions, coapPayload, remoteAddress);
+        System.out.println("Decode a message successfully: " + coapMessage);
+        sendTestResponse(ctx);
         out.add(coapMessage);
     }
 
@@ -217,5 +220,27 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
                 remoteAddress
         );
         ctx.writeAndFlush(response);
+    }
+
+    public void sendTestResponse(ChannelHandlerContext ctx) {
+        CoapMessage response = new CoapMessage(
+                VERSION,
+                coapType == CoapMessageType.CON ? CoapMessageType.ACK : CoapMessageType.NON,
+                coapToken == null ? 0 : coapTokenLength,
+                CoapMessageCode.Valid,
+                coapMessageId,
+                coapToken,
+                null,
+                "Hello, I have accept your request successfully!".getBytes(StandardCharsets.UTF_8),
+                remoteAddress
+        );
+//        ctx.write(response);
+//        ctx.flush();
+        if (ctx.channel().isActive()) {
+            ctx.writeAndFlush(response);
+        } else {
+            System.out.println("Channel is not active");
+        }
+
     }
 }
