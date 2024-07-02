@@ -26,6 +26,10 @@ import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapDeleteHandler;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapGetHandler;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapPostHandler;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapPutHandler;
+import org.apache.rocketmq.mqtt.ds.upstream.coap.processor.CoapDeleteProcessor;
+import org.apache.rocketmq.mqtt.ds.upstream.coap.processor.CoapGetProcessor;
+import org.apache.rocketmq.mqtt.ds.upstream.coap.processor.CoapPostProcessor;
+import org.apache.rocketmq.mqtt.ds.upstream.coap.processor.CoapPutProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -52,6 +56,18 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
     @Resource
     private CoapUpstreamHookManager upstreamHookManager;
 
+    @Resource
+    CoapGetProcessor coapGetProcessor;
+
+    @Resource
+    CoapPostProcessor coapPostProcessor;
+
+    @Resource
+    CoapPutProcessor coapPutProcessor;
+
+    @Resource
+    CoapDeleteProcessor coapDeleteProcessor;
+
 
 
     @Override
@@ -61,10 +77,11 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
         if (!preResult) {
             return;
         }
-        CompletableFuture<HookResult> upstreamHookResult;
+        CompletableFuture<HookResult> processResult;
         try {
-            upstreamHookResult = upstreamHookManager.doUpstreamHook(msg);
-            if (upstreamHookResult == null) {
+//            processResult = upstreamHookManager.doUpstreamHook(msg);
+            processResult = processCoapMessage(msg);
+            if (processResult == null) {
                 _channelRead0(ctx, msg, null);
                 return;
             }
@@ -72,7 +89,7 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
             logger.error("", t);
             throw new ChannelException(t.getMessage());
         }
-        upstreamHookResult.whenComplete((hookResult, throwable) -> {
+        processResult.whenComplete((hookResult, throwable) -> {
             if (throwable != null) {
                 logger.error("", throwable);
                 ctx.fireExceptionCaught(new ChannelException(throwable.getMessage()));
@@ -91,19 +108,19 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
         });
     }
 
-    private  void _channelRead0(ChannelHandlerContext ctx, CoapMessage msg, HookResult upstreamHookResult) {
+    private  void _channelRead0(ChannelHandlerContext ctx, CoapMessage msg, HookResult processResult) {
         switch (msg.getCode()) {
             case GET:
-                coapGetHandler.doHandler(ctx, msg, upstreamHookResult);
+                coapGetHandler.doHandler(ctx, msg, processResult);
                 break;
             case POST:
-                coapPostHandler.doHandler(ctx, msg, upstreamHookResult);
+                coapPostHandler.doHandler(ctx, msg, processResult);
                 break;
             case PUT:
-                coapPutHandler.doHandler(ctx, msg, upstreamHookResult);
+                coapPutHandler.doHandler(ctx, msg, processResult);
                 break;
             case DELETE:
-                coapDeleteHandler.doHandler(ctx, msg, upstreamHookResult);
+                coapDeleteHandler.doHandler(ctx, msg, processResult);
                 break;
             default:
         }
@@ -122,6 +139,23 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
             default:
                 return false;
         }
+    }
+
+    public CompletableFuture<HookResult> processCoapMessage(CoapMessage msg) {
+        switch (msg.getCode()) {
+            case GET:
+                return coapGetProcessor.process(msg);
+            case POST:
+                return coapPostProcessor.process(msg);
+            case PUT:
+                return coapPutProcessor.process(msg);
+            case DELETE:
+                return coapDeleteProcessor.process(msg);
+            default:
+        }
+        CompletableFuture<HookResult> hookResult = new CompletableFuture<>();
+        hookResult.complete(new HookResult(HookResult.FAIL, "InvalidCoapMsgCode", null));
+        return hookResult;
     }
 
 }

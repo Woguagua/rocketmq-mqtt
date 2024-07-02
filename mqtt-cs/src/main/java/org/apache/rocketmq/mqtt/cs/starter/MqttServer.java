@@ -316,9 +316,9 @@ public class MqttServer {
                     @Override
                     protected void initChannel(DatagramChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
-                        pipeline.addLast("coap-handler", new CoapHandler());
-                        pipeline.addLast("coap-decoder", new CoapDecoder());
+//                        pipeline.addLast("coap-handler", new CoapHandler());
                         pipeline.addLast("coap-encoder", new CoapEncoder());
+                        pipeline.addLast("coap-decoder", new CoapDecoder());
                         pipeline.addLast("coap-dispatcher", coapPacketDispatcher);
                     }
                 });
