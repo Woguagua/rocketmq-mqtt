@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 public class CoapDeleteHandler implements CoapPacketHandler<CoapMessage> {
     @Override
     public boolean preHandler(ChannelHandlerContext ctx, CoapMessage coapMessage) {
+        // todo: add a InFlyCache, check redundant message using messageID or token
         return false;
     }
 
