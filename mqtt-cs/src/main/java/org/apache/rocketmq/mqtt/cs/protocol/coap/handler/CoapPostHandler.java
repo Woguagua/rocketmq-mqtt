@@ -17,11 +17,16 @@
 package org.apache.rocketmq.mqtt.cs.protocol.coap.handler;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageCode;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageType;
 import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
+import org.apache.rocketmq.mqtt.common.model.Constants;
 import org.apache.rocketmq.mqtt.cs.protocol.CoapPacketHandler;
 import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
 import org.springframework.stereotype.Component;
+
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class CoapPostHandler implements CoapPacketHandler<CoapRequestMessage> {
@@ -41,10 +46,32 @@ public class CoapPostHandler implements CoapPacketHandler<CoapRequestMessage> {
     }
 
     public void doResponseFail(ChannelHandlerContext ctx, CoapRequestMessage coapMessage, String errContent) {
-        System.out.println("Handle Post Request Fail");
+        CoapMessage response = new CoapMessage(
+                Constants.COAP_VERSION,
+                coapMessage.getType() == CoapMessageType.CON ? CoapMessageType.ACK : CoapMessageType.NON,
+                coapMessage.getTokenLength(),
+                CoapMessageCode.INTERNAL_SERVER_ERROR,
+                coapMessage.getMessageId(),
+                coapMessage.getToken(),
+                null,
+                errContent.getBytes(),
+                coapMessage.getRemoteAddress()
+        );
+        ctx.writeAndFlush(response);
     }
 
     public void doResponseSuccess(ChannelHandlerContext ctx, CoapRequestMessage coapMessage) {
-        System.out.println("Handle Post Request Success");
+        CoapMessage response = new CoapMessage(
+                Constants.COAP_VERSION,
+                coapMessage.getType() == CoapMessageType.CON ? CoapMessageType.ACK : CoapMessageType.NON,
+                coapMessage.getTokenLength(),
+                CoapMessageCode.CREATED,
+                coapMessage.getMessageId(),
+                coapMessage.getToken(),
+                null,
+                null,
+                coapMessage.getRemoteAddress()
+        );
+        ctx.writeAndFlush(response);
     }
 }

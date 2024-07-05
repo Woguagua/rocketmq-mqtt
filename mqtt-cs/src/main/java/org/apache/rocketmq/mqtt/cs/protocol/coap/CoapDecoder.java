@@ -32,12 +32,6 @@ import java.util.List;
 // todo: Dealing with messageID and token when the request is wrong.
 // todo: Dealing with exception throwing when the request is wrong.
 public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
-    /** Coap Version */
-    public static final int VERSION = 1;
-    /** Coap Division Marker for Payload */
-    public static final int PAYLOAD_MARKER = 0xFF;
-    /** Coap Token Length must be 0~8 */
-    public static final int MAX_TOKEN_LENGTH = 8;
 
     private CoapMessageType coapType;
     private int coapTokenLength;
@@ -70,7 +64,7 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         // Handle first byte, including version, type, and token length.
         int firstByte = in.readUnsignedByte();
         int version = (firstByte >> 6) & 0x03;
-        if (version != VERSION) {
+        if (version != Constants.COAP_VERSION) {
             errorCode = CoapMessageCode.BAD_REQUEST;
             errorContent = "Format-Error: Version must be 1!";
             sendErrorResponse(ctx);
@@ -80,7 +74,7 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         }
         coapType = CoapMessageType.valueOf((firstByte >> 4) & 0x03);
         coapTokenLength = firstByte & 0x0F;
-        if (coapTokenLength > MAX_TOKEN_LENGTH) {
+        if (coapTokenLength > Constants.COAP_MAX_TOKEN_LENGTH) {
             errorCode = CoapMessageCode.BAD_REQUEST;
             errorContent = "Format-Error: The length of token is too long!";
             sendErrorResponse(ctx);
@@ -135,7 +129,7 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         while (in.readableBytes() > 0) {
 
             nextByte = in.readUnsignedByte();
-            if (nextByte == PAYLOAD_MARKER) {
+            if (nextByte == Constants.COAP_PAYLOAD_MARKER) {
                 break;
             }
 
@@ -217,7 +211,7 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
     public void sendErrorResponse(ChannelHandlerContext ctx) {
         CoapMessage response = new CoapMessage(
-                VERSION,
+                Constants.COAP_VERSION,
                 coapType == CoapMessageType.CON ? CoapMessageType.ACK : CoapMessageType.NON,
                 coapToken == null ? 0 : coapTokenLength,
                 errorCode,
@@ -232,7 +226,7 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
     public void sendTestResponse(ChannelHandlerContext ctx) {
         CoapMessage response = new CoapMessage(
-                VERSION,
+                Constants.COAP_VERSION,
                 coapType == CoapMessageType.CON ? CoapMessageType.ACK : CoapMessageType.NON,
                 coapToken == null ? 0 : coapTokenLength,
                 CoapMessageCode.Valid,

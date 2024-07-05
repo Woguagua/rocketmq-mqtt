@@ -20,7 +20,6 @@ package org.apache.rocketmq.mqtt.common.model;
 public class Constants {
     public static final String NAMESPACE_SPLITER = "%";
     public static final String MQTT_TOPIC_DELIMITER = "/";
-    public static final String COAP_URI_DELIMITER = "/";
 
     public static final String PLUS_SIGN = "+";
     public static final String NUMBER_SIGN = "#";
@@ -32,7 +31,6 @@ public class Constants {
 
     public static final String PROPERTY_NAMESPACE = "namespace";
     public static final String PROPERTY_ORIGIN_MQTT_TOPIC = "originMqttTopic";
-    public static final String PROPERTY_ORIGIN_COAP_TOPIC = "originCoapTopic";
     public static final String PROPERTY_MQTT_QOS = "qosLevel";
     public static final String PROPERTY_MQTT_CLEAN_SESSION = "cleanSessionFlag";
     public static final String PROPERTY_MQTT_CLIENT = "clientId";
@@ -52,8 +50,6 @@ public class Constants {
     public static final String PROPERTY_MQTT_MSG_EVENT_RETRY_TIME = "retryTime";
 
     public static final String MQTT_TAG = "MQTT_COMMON";
-
-    public static final String COAP_TAG = "COAP_COMMON";
 
     public static final String PROPERTY_ORIGIN_MQTT_ISEMPTY_MSG = "IS_EMPTY_MSG";
 
@@ -77,4 +73,11 @@ public class Constants {
     public static final String CLIENT_EVENT_ORIGIN_TOPIC = MQTT_SYSTEM_TOPIC
             + MQTT_TOPIC_DELIMITER + CLIENT_EVENT_SECOND_TOPIC;
     public static final int CLIENT_EVENT_BATCH_SIZE = 100;
+
+    public static final String COAP_URI_DELIMITER = "/";
+    public static final String COAP_TAG = "COAP_COMMON";
+    public static final String PROPERTY_ORIGIN_COAP_TOPIC = "originCoapTopic";
+    public static final int COAP_VERSION = 1;
+    public static final int COAP_PAYLOAD_MARKER = 0xFF;
+    public static final int COAP_MAX_TOKEN_LENGTH = 8;
 }
