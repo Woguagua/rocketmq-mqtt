@@ -273,6 +273,44 @@ public class LmqQueueStoreManager implements LmqQueueStore {
         return result;
     }
 
+    @Override
+    public CompletableFuture<StoreResult> putCoapMessage(Set<String> queues, Message message) {
+        CompletableFuture<StoreResult> result = new CompletableFuture<>();
+        org.apache.rocketmq.common.message.Message mqMessage = new org.apache.rocketmq.common.message.Message(message.getFirstTopic(), message.getPayload());
+        MessageAccessor.putProperty(mqMessage, MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX, message.getMsgId());
+        mqMessage.putUserProperty(Constants.PROPERTY_ORIGIN_COAP_TOPIC, message.getOriginTopic());
+        mqMessage.setTags(Constants.COAP_TAG);
+        mqMessage.putUserProperty(MessageConst.PROPERTY_INNER_MULTI_DISPATCH,
+                StringUtils.join(
+                        queues.stream().map(s -> MixAll.LMQ_PREFIX + StringUtils.replace(s, "/", "%")).collect(Collectors.toSet()),
+                        MixAll.MULTI_DISPATCH_QUEUE_SPLITTER));
+        try {
+            long start = System.currentTimeMillis();
+            defaultMQProducer.send(mqMessage,
+                    new SendCallback() {
+                        @Override
+                        public void onSuccess(SendResult sendResult) {
+                            result.complete(toStoreResult(sendResult));
+                            long rt = System.currentTimeMillis() - start;
+                            StatUtil.addInvoke("lmqWrite", rt);
+                            collectLmqReadWriteMatchActionRt("lmqWrite", rt, true);
+                        }
+
+                        @Override
+                        public void onException(Throwable e) {
+                            logger.error("", e);
+                            result.completeExceptionally(e);
+                            long rt = System.currentTimeMillis() - start;
+                            StatUtil.addInvoke("lmqWrite", rt, false);
+                            collectLmqReadWriteMatchActionRt("lmqWrite", rt, false);
+                        }
+                    });
+        } catch (Throwable e) {
+            result.completeExceptionally(e);
+        }
+        return result;
+    }
+
     private void collectLmqReadWriteMatchActionRt(String action, long rt, boolean status) {
         try {
             MqttMetricsCollector.collectLmqReadWriteMatchActionRt(rt, action, String.valueOf(status));

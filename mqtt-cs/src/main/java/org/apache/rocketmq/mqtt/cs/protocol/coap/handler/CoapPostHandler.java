@@ -17,21 +17,34 @@
 package org.apache.rocketmq.mqtt.cs.protocol.coap.handler;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.mqtt.cs.protocol.CoapPacketHandler;
 import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CoapPostHandler implements CoapPacketHandler<CoapMessage> {
+public class CoapPostHandler implements CoapPacketHandler<CoapRequestMessage> {
     @Override
-    public boolean preHandler(ChannelHandlerContext ctx, CoapMessage coapMessage) {
-        // todo: add a InFlyCache, check redundant message using messageID or token
-        return false;
+    public boolean preHandler(ChannelHandlerContext ctx, CoapRequestMessage coapMessage) {
+        // todo: add a cache, check redundant message using messageID or token, respond according to the header, check payload format
+        return true;
     }
 
     @Override
-    public void doHandler(ChannelHandlerContext ctx, CoapMessage coapMessage, HookResult upstreamHookResult) {
+    public void doHandler(ChannelHandlerContext ctx, CoapRequestMessage coapMessage, HookResult upstreamHookResult) {
+        if (upstreamHookResult.isSuccess()) {
+            doResponseSuccess(ctx, coapMessage);
+        } else {
+            doResponseFail(ctx, coapMessage, upstreamHookResult.getRemark());
+        }
+    }
 
+    public void doResponseFail(ChannelHandlerContext ctx, CoapRequestMessage coapMessage, String errContent) {
+        System.out.println("Handle Post Request Fail");
+    }
+
+    public void doResponseSuccess(ChannelHandlerContext ctx, CoapRequestMessage coapMessage) {
+        System.out.println("Handle Post Request Success");
     }
 }

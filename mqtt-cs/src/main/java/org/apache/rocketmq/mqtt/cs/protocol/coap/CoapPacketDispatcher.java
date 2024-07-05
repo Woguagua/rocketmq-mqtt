@@ -20,6 +20,7 @@ import io.netty.channel.ChannelException;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.CoapUpstreamHookManager;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.handler.CoapDeleteHandler;
@@ -38,7 +39,7 @@ import javax.annotation.Resource;
 import java.util.concurrent.CompletableFuture;
 
 @Component
-public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessage> {
+public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapRequestMessage> {
 
     private static Logger logger = LoggerFactory.getLogger(CoapPacketDispatcher.class);
     @Resource
@@ -71,7 +72,7 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
 
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, CoapMessage msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, CoapRequestMessage msg) throws Exception {
 
         boolean preResult = preHandler(ctx, msg);
         if (!preResult) {
@@ -108,7 +109,7 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
         });
     }
 
-    private  void _channelRead0(ChannelHandlerContext ctx, CoapMessage msg, HookResult processResult) {
+    private  void _channelRead0(ChannelHandlerContext ctx, CoapRequestMessage msg, HookResult processResult) {
         switch (msg.getCode()) {
             case GET:
                 coapGetHandler.doHandler(ctx, msg, processResult);
@@ -126,7 +127,7 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
         }
     }
 
-    private boolean preHandler(ChannelHandlerContext ctx, CoapMessage msg) {
+    private boolean preHandler(ChannelHandlerContext ctx, CoapRequestMessage msg) {
         switch (msg.getCode()) {
             case GET:
                 return coapGetHandler.preHandler(ctx, msg);
@@ -141,7 +142,7 @@ public class CoapPacketDispatcher extends SimpleChannelInboundHandler<CoapMessag
         }
     }
 
-    public CompletableFuture<HookResult> processCoapMessage(CoapMessage msg) {
+    public CompletableFuture<HookResult> processCoapMessage(CoapRequestMessage msg) {
         switch (msg.getCode()) {
             case GET:
                 return coapGetProcessor.process(msg);

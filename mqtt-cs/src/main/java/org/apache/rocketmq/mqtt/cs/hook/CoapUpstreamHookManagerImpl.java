@@ -16,7 +16,7 @@
  */
 package org.apache.rocketmq.mqtt.cs.hook;
 
-import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.CoapUpstreamHook;
 import org.apache.rocketmq.mqtt.common.hook.CoapUpstreamHookManager;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
@@ -43,7 +43,7 @@ public class CoapUpstreamHookManagerImpl implements CoapUpstreamHookManager {
     }
 
     @Override
-    public CompletableFuture<HookResult> doUpstreamHook(CoapMessage msg) {
+    public CompletableFuture<HookResult> doUpstreamHook(CoapRequestMessage msg) {
         assembleNextHook();
         CompletableFuture<HookResult> hookResult = new CompletableFuture<>();
         if (upstreamHookList.length <= 0) {

@@ -17,7 +17,7 @@
 
 package org.apache.rocketmq.mqtt.common.hook;
 
-import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -36,6 +36,6 @@ public interface CoapUpstreamHookManager {
      * @param msg
      * @return
      */
-    CompletableFuture<HookResult> doUpstreamHook(CoapMessage msg);
+    CompletableFuture<HookResult> doUpstreamHook(CoapRequestMessage msg);
 
 }

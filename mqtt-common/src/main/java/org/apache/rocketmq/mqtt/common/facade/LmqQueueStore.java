@@ -47,6 +47,16 @@ public interface LmqQueueStore {
     CompletableFuture<StoreResult> putMessage(Set<String> queues, List<Message> messageList);
 
     /**
+     * put message and atomic dispatch to multiple queues
+     *
+     * @param queues
+     * @param message
+     * @return
+     */
+    CompletableFuture<StoreResult> putCoapMessage(Set<String> queues, Message message);
+
+
+    /**
      * pull messages
      *
      * @param firstTopic

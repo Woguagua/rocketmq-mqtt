@@ -17,21 +17,22 @@
 package org.apache.rocketmq.mqtt.cs.protocol.coap.handler;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.mqtt.cs.protocol.CoapPacketHandler;
 import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CoapPutHandler implements CoapPacketHandler<CoapMessage> {
+public class CoapPutHandler implements CoapPacketHandler<CoapRequestMessage> {
     @Override
-    public boolean preHandler(ChannelHandlerContext ctx, CoapMessage coapMessage) {
+    public boolean preHandler(ChannelHandlerContext ctx, CoapRequestMessage coapMessage) {
         // todo: add a InFlyCache, check redundant message using messageID or token
         return false;
     }
 
     @Override
-    public void doHandler(ChannelHandlerContext ctx, CoapMessage coapMessage, HookResult upstreamHookResult) {
+    public void doHandler(ChannelHandlerContext ctx, CoapRequestMessage coapMessage, HookResult upstreamHookResult) {
 
     }
 }

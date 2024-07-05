@@ -41,6 +41,17 @@ public class CoapMessage {
         this.options = options;
         this.payload = payload;
         this.remoteAddress = remoteAddress;
+
+    }
+
+    public CoapMessage(int version, CoapMessageType type, int tokenLength, CoapMessageCode code , int messageId, byte[] token, InetSocketAddress remoteAddress) {
+        this.version = version;
+        this.type = type;
+        this.tokenLength = tokenLength;
+        this.code = code;
+        this.messageId = messageId;
+        this.token = token;
+        this.remoteAddress = remoteAddress;
     }
 
     public CoapMessage(int version, int type, int tokenLength, int code, int messageId, byte[] token, List<CoapMessageOption> options, byte[] payload, InetSocketAddress remoteAddress) {

@@ -16,6 +16,7 @@ package org.apache.rocketmq.mqtt.ds.upstream.coap;/*
  */
 
 import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 
@@ -28,5 +29,5 @@ public interface CoapUpstreamProcessor {
      * @param msg
      * @return
      */
-    CompletableFuture<HookResult> process(CoapMessage msg) throws RemotingException, com.alipay.sofa.jraft.error.RemotingException, ExecutionException, InterruptedException;
+    CompletableFuture<HookResult> process(CoapRequestMessage msg) throws RemotingException, com.alipay.sofa.jraft.error.RemotingException, ExecutionException, InterruptedException;
 }

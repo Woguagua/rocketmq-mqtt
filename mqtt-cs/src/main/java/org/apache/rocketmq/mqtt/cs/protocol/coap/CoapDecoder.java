@@ -20,12 +20,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import io.netty.util.ReferenceCountUtil;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessageOption;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessageType;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessageCode;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessageOptionNumber;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.*;
+import org.apache.rocketmq.mqtt.common.model.Constants;
 
 
 import java.net.InetSocketAddress;
@@ -56,7 +52,7 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
     private CoapMessageCode errorCode;
 
     @Override
-    public void decode(ChannelHandlerContext ctx, DatagramPacket packet, List<Object> out) throws Exception {
+    public void decode(ChannelHandlerContext ctx, DatagramPacket packet, List<Object> out) {
 
         ByteBuf in = packet.content();
         remoteAddress = packet.sender();
@@ -129,10 +125,13 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         coapToken = new byte[coapTokenLength];
         in.readBytes(coapToken);
 
+        CoapRequestMessage coapMessage = new CoapRequestMessage(version, coapType, coapTokenLength, coapCode, coapMessageId, coapToken, remoteAddress);
+
         // Handle options
-        int nextByte = 0;
+        int nextByte;
         int optionNumber = 0;
-        coapOptions = new ArrayList<CoapMessageOption>();
+        coapOptions = new ArrayList<>();
+        StringBuilder uriSb = new StringBuilder();
         while (in.readableBytes() > 0) {
 
             nextByte = in.readUnsignedByte();
@@ -167,7 +166,6 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
                 return;
             }
 
-
             if (optionLength == 13) {
                 optionLength += in.readUnsignedByte();
             } else if (optionLength == 14) {
@@ -192,17 +190,27 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
             byte[] optionValue = new byte[optionLength];
             in.readBytes(optionValue);
 
+            if (optionNumber == CoapMessageOptionNumber.URI_PATH.value()) {
+                uriSb.append(new String(optionValue, StandardCharsets.UTF_8));
+                uriSb.append(Constants.COAP_URI_DELIMITER);
+            }
+
             coapOptions.add(new CoapMessageOption(optionNumber, optionValue));
+        }
+        if (!coapOptions.isEmpty()) {
+            coapMessage.setOptions(coapOptions);
+            if (uriSb.length() > 0) {
+                coapMessage.setUriPath(uriSb.toString());
+            }
         }
 
         // Handle payload
         if (in.readableBytes() > 0) {
             coapPayload = new byte[in.readableBytes()];
             in.readBytes(coapPayload);
+            coapMessage.setPayload(coapPayload);
         }
 
-        CoapMessage coapMessage = new CoapMessage(version, coapType, coapTokenLength, coapCode, coapMessageId, coapToken, coapOptions, coapPayload, remoteAddress);
-//        System.out.println("Decode a message successfully: " + coapMessage);
 //        sendTestResponse(ctx);
         out.add(coapMessage);
     }
@@ -234,8 +242,6 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
                 "Hello, I have accept your request successfully!".getBytes(StandardCharsets.UTF_8),
                 remoteAddress
         );
-//        ctx.write(response);
-//        ctx.flush();
         if (ctx.channel().isActive()) {
             ctx.writeAndFlush(response);
         } else {

@@ -32,7 +32,10 @@ import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
 import org.apache.rocketmq.common.message.MessageDecoder;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.model.Message;
+import org.apache.rocketmq.mqtt.common.model.MqttTopic;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -135,6 +138,16 @@ public class MessageUtil {
         }
 
         return message;
+    }
+
+    public static Message toMessage(CoapRequestMessage coapMessage) {
+        Message message = new Message();
+        message.setFirstTopic(TopicUtils.decode(coapMessage.getUriPath()).getFirstTopic());
+        message.setOriginTopic(coapMessage.getUriPath());
+        message.setPayload(coapMessage.getPayload());
+
+        return message;
+
     }
 
     public static MqttPublishMessage removeRetainedFlag(MqttPublishMessage mqttPublishMessage) {

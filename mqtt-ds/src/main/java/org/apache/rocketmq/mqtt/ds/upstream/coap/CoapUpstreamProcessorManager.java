@@ -17,6 +17,7 @@
 
 package org.apache.rocketmq.mqtt.ds.upstream.coap;
 
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.CoapUpstreamHook;
 import org.apache.rocketmq.mqtt.common.hook.Hook;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
@@ -60,7 +61,7 @@ public class CoapUpstreamProcessorManager implements CoapUpstreamHook {
     }
 
     @Override
-    public CompletableFuture<HookResult> doHook(CoapMessage msg) {
+    public CompletableFuture<HookResult> doHook(CoapRequestMessage msg) {
         try {
             CompletableFuture<HookResult> result = processCoapMessage(msg);
             if (nextUpstreamHook == null) {
@@ -87,7 +88,7 @@ public class CoapUpstreamProcessorManager implements CoapUpstreamHook {
         // todo: Add Coap Hook
     }
 
-    public CompletableFuture<HookResult> processCoapMessage(CoapMessage msg) {
+    public CompletableFuture<HookResult> processCoapMessage(CoapRequestMessage msg) {
         switch (msg.getCode()) {
             case GET:
                 return coapGetProcessor.process(msg);
