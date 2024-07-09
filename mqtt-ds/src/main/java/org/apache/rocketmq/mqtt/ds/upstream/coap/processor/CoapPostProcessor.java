@@ -25,6 +25,8 @@ import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.mqtt.common.model.Message;
 import org.apache.rocketmq.mqtt.common.model.StoreResult;
 import org.apache.rocketmq.mqtt.common.util.MessageUtil;
+import org.apache.rocketmq.mqtt.common.util.TopicUtils;
+import org.apache.rocketmq.mqtt.ds.meta.FirstTopicManager;
 import org.apache.rocketmq.mqtt.ds.upstream.coap.CoapUpstreamProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,9 @@ public class CoapPostProcessor implements CoapUpstreamProcessor {
     @Resource
     private LmqQueueStore lmqQueueStore;
 
+    @Resource
+    private FirstTopicManager firstTopicManager;
+
     @Override
     public CompletableFuture<HookResult> process(CoapRequestMessage msg) {
         CompletableFuture<StoreResult> r = put(msg);
@@ -48,6 +53,7 @@ public class CoapPostProcessor implements CoapUpstreamProcessor {
     }
 
     public CompletableFuture<StoreResult> put(CoapRequestMessage coapMessage) {
+        firstTopicManager.checkFirstTopicIfCreated(TopicUtils.decode(coapMessage.getUriPath()).getFirstTopic());
         String msgId = MessageClientIDSetter.createUniqID();
         long bornTime = System.currentTimeMillis();
         Set<String> queueNames = new HashSet<>();
