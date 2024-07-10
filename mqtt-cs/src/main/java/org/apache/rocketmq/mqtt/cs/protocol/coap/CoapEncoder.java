@@ -44,7 +44,7 @@ public class CoapEncoder extends MessageToMessageEncoder<CoapMessage> {
         buffer.writeBytes(msg.getToken());
 
         // Handle Options
-        if (msg.getOptions() != null) {
+        if (!msg.getOptions().isEmpty()) {
             int prevOptionNumber = 0;
             for (CoapMessageOption option : msg.getOptions()) {
                 int optionDelta = option.getOptionNumber().value() - prevOptionNumber;

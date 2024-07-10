@@ -23,12 +23,12 @@ import java.util.List;
 public class CoapRequestMessage extends CoapMessage{
     String uriPath;
 
-    public CoapRequestMessage(int version, CoapMessageType type, int tokenLength, CoapMessageCode code, int messageId, byte[] token, List<CoapMessageOption> options, byte[] payload, InetSocketAddress remoteAddress) {
-        super(version, type, tokenLength, code, messageId, token, options, payload, remoteAddress);
+    public CoapRequestMessage(int version, CoapMessageType type, int tokenLength, CoapMessageCode code, int messageId, byte[] token, byte[] payload, InetSocketAddress remoteAddress) {
+        super(version, type, tokenLength, code, messageId, token, payload, remoteAddress);
     }
 
-    public CoapRequestMessage(int version, int type, int tokenLength, int code, int messageId, byte[] token, List<CoapMessageOption> options, byte[] payload, InetSocketAddress remoteAddress) {
-        super(version, type, tokenLength, code, messageId, token, options, payload, remoteAddress);
+    public CoapRequestMessage(int version, int type, int tokenLength, int code, int messageId, byte[] token, byte[] payload, InetSocketAddress remoteAddress) {
+        super(version, type, tokenLength, code, messageId, token, payload, remoteAddress);
     }
 
     public CoapRequestMessage(int version, CoapMessageType type, int tokenLength, CoapMessageCode code, int messageId, byte[] token, InetSocketAddress remoteAddress) {

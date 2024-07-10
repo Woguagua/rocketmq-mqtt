@@ -25,6 +25,7 @@ import org.apache.rocketmq.mqtt.common.model.Constants;
 
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,6 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
     private CoapMessageCode coapCode;
     private int coapMessageId;
     private byte[] coapToken;
-    private List<CoapMessageOption> coapOptions;
     private byte[] coapPayload;
     InetSocketAddress remoteAddress;
 
@@ -124,7 +124,6 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
         // Handle options
         int nextByte;
         int optionNumber = 0;
-        coapOptions = new ArrayList<>();
         StringBuilder uriSb = new StringBuilder();
         while (in.readableBytes() > 0) {
 
@@ -189,13 +188,18 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
                 uriSb.append(Constants.COAP_URI_DELIMITER);
             }
 
-            coapOptions.add(new CoapMessageOption(optionNumber, optionValue));
-        }
-        if (!coapOptions.isEmpty()) {
-            coapMessage.setOptions(coapOptions);
-            if (uriSb.length() > 0) {
-                coapMessage.setUriPath(uriSb.toString());
+            if (optionNumber == CoapMessageOptionNumber.CONTENT_FORMAT.value() && optionValue.length > 0) {
+                int contentFormat = 0;
+                for (byte b : optionValue) {
+                    contentFormat = (contentFormat << 8) | (b & 0xFF);
+                }
+                coapMessage.setContentFormat(CoapMessageContentFormat.valueOf(contentFormat));
             }
+
+            coapMessage.addOption(new CoapMessageOption(optionNumber, optionValue));
+        }
+        if (uriSb.length() > 0) {
+            coapMessage.setUriPath(uriSb.toString());
         }
 
         // Handle payload
@@ -217,10 +221,10 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
                 errorCode,
                 coapMessageId,
                 coapToken,
-                null,
                 errorContent.getBytes(StandardCharsets.UTF_8),
                 remoteAddress
         );
+        response.addOption(new CoapMessageOption(CoapMessageOptionNumber.CONTENT_FORMAT, CoapMessageContentFormat.TEXT_PLAIN.toByteArray()));
         ctx.writeAndFlush(response);
     }
 
@@ -232,10 +236,10 @@ public class CoapDecoder extends MessageToMessageDecoder<DatagramPacket> {
                 CoapMessageCode.Valid,
                 coapMessageId,
                 coapToken,
-                null,
                 "Hello, I have accept your request successfully!".getBytes(StandardCharsets.UTF_8),
                 remoteAddress
         );
+        response.addOption(new CoapMessageOption(CoapMessageOptionNumber.CONTENT_FORMAT, CoapMessageContentFormat.TEXT_PLAIN.toByteArray()));
         if (ctx.channel().isActive()) {
             ctx.writeAndFlush(response);
         } else {

@@ -17,6 +17,7 @@
 package org.apache.rocketmq.mqtt.common.coap;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,21 +28,21 @@ public class CoapMessage {
     private CoapMessageCode code;
     private int messageId;
     private byte[] token;
-    private List<CoapMessageOption> options;
+    private List<CoapMessageOption> options = new ArrayList<>();
+    private CoapMessageContentFormat contentFormat;
     private byte[] payload;
     private InetSocketAddress remoteAddress;
 
-    public CoapMessage(int version, CoapMessageType type, int tokenLength, CoapMessageCode code, int messageId, byte[] token, List<CoapMessageOption> options, byte[] payload, InetSocketAddress remoteAddress) {
+    public CoapMessage(int version, CoapMessageType type, int tokenLength, CoapMessageCode code, int messageId, byte[] token, byte[] payload, InetSocketAddress remoteAddress) {
         this.version = version;
         this.type = type;
         this.tokenLength = tokenLength;
         this.code = code;
         this.messageId = messageId;
         this.token = token;
-        this.options = options;
+        this.contentFormat = CoapMessageContentFormat.TEXT_PLAIN;
         this.payload = payload;
         this.remoteAddress = remoteAddress;
-
     }
 
     public CoapMessage(int version, CoapMessageType type, int tokenLength, CoapMessageCode code , int messageId, byte[] token, InetSocketAddress remoteAddress) {
@@ -51,11 +52,12 @@ public class CoapMessage {
         this.code = code;
         this.messageId = messageId;
         this.token = token;
+        this.contentFormat = CoapMessageContentFormat.TEXT_PLAIN;
         this.remoteAddress = remoteAddress;
     }
 
-    public CoapMessage(int version, int type, int tokenLength, int code, int messageId, byte[] token, List<CoapMessageOption> options, byte[] payload, InetSocketAddress remoteAddress) {
-        this(version, CoapMessageType.valueOf(type), tokenLength, CoapMessageCode.valueOf(code), messageId, token, options, payload, remoteAddress);
+    public CoapMessage(int version, int type, int tokenLength, int code, int messageId, byte[] token, byte[] payload, InetSocketAddress remoteAddress) {
+        this(version, CoapMessageType.valueOf(type), tokenLength, CoapMessageCode.valueOf(code), messageId, token, payload, remoteAddress);
     }
 
     public int getVersion() {
@@ -114,12 +116,24 @@ public class CoapMessage {
         this.options = options;
     }
 
+    public void addOption(CoapMessageOption option) {
+        this.options.add(option);
+    }
+
     public byte[] getPayload() {
         return payload;
     }
 
     public void setPayload(byte[] payload) {
         this.payload = payload;
+    }
+
+    public CoapMessageContentFormat getContentFormat() {
+        return contentFormat;
+    }
+
+    public void setContentFormat(CoapMessageContentFormat contentFormat) {
+        this.contentFormat = contentFormat;
     }
 
     public InetSocketAddress getRemoteAddress() {

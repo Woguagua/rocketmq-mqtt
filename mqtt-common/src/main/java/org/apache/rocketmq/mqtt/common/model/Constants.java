@@ -77,6 +77,7 @@ public class Constants {
     public static final String COAP_URI_DELIMITER = "/";
     public static final String COAP_TAG = "COAP_COMMON";
     public static final String PROPERTY_ORIGIN_COAP_TOPIC = "originCoapTopic";
+    public static final String PROPERTY_COAP_CONTENT_FORMAT = "contentFormat";
     public static final int COAP_VERSION = 1;
     public static final int COAP_PAYLOAD_MARKER = 0xFF;
     public static final int COAP_MAX_TOKEN_LENGTH = 8;

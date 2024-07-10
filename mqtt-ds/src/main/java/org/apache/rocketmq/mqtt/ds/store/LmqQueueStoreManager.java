@@ -279,11 +279,16 @@ public class LmqQueueStoreManager implements LmqQueueStore {
         org.apache.rocketmq.common.message.Message mqMessage = new org.apache.rocketmq.common.message.Message(message.getFirstTopic(), message.getPayload());
         MessageAccessor.putProperty(mqMessage, MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX, message.getMsgId());
         mqMessage.putUserProperty(Constants.PROPERTY_ORIGIN_COAP_TOPIC, message.getOriginTopic());
+        mqMessage.putUserProperty(Constants.PROPERTY_COAP_CONTENT_FORMAT, message.getUserProperty(Constants.PROPERTY_COAP_CONTENT_FORMAT));
         mqMessage.setTags(Constants.COAP_TAG);
         mqMessage.putUserProperty(MessageConst.PROPERTY_INNER_MULTI_DISPATCH,
                 StringUtils.join(
                         queues.stream().map(s -> MixAll.LMQ_PREFIX + StringUtils.replace(s, "/", "%")).collect(Collectors.toSet()),
                         MixAll.MULTI_DISPATCH_QUEUE_SPLITTER));
+        Map<String, String> userProps = message.getUserProperties();
+        if (userProps != null && !userProps.isEmpty()) {
+            mqMessage.putUserProperty(Constants.PROPERTY_MQTT_EXT_DATA, JSONObject.toJSONString(userProps));
+        }
         try {
             long start = System.currentTimeMillis();
             defaultMQProducer.send(mqMessage,

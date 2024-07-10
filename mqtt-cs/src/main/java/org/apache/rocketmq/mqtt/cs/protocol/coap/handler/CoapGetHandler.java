@@ -18,19 +18,19 @@ package org.apache.rocketmq.mqtt.cs.protocol.coap.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import io.netty.channel.ChannelHandlerContext;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessageCode;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessageType;
-import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
+import org.apache.rocketmq.mqtt.common.coap.*;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.mqtt.common.model.Constants;
 import org.apache.rocketmq.mqtt.common.model.Message;
 import org.apache.rocketmq.mqtt.common.model.PullResult;
 import org.apache.rocketmq.mqtt.cs.protocol.CoapPacketHandler;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+
+import static org.apache.rocketmq.mqtt.common.model.Constants.PROPERTY_COAP_CONTENT_FORMAT;
 
 @Component
 public class CoapGetHandler implements CoapPacketHandler<CoapRequestMessage> {
@@ -49,7 +49,21 @@ public class CoapGetHandler implements CoapPacketHandler<CoapRequestMessage> {
                 // todo: check when every message is not a string but a json list
                 JSONArray jsonArray = new JSONArray();
                 for (Message msg : pullResult.getMessageList()) {
-                    jsonArray.add(new String(msg.getPayload(), StandardCharsets.UTF_8));
+                    if (msg.getUserProperty(PROPERTY_COAP_CONTENT_FORMAT) != null) {
+                        switch (CoapMessageContentFormat.valueOf(Integer.parseInt(msg.getUserProperty(PROPERTY_COAP_CONTENT_FORMAT)))) {
+                            case APPLICATION_JSON:
+                                JSONObject jsonObject = JSON.parseObject(new String(msg.getPayload(), StandardCharsets.UTF_8));
+                                jsonArray.add(jsonObject);
+                                break;
+                            case TEXT_PLAIN:
+//                                jsonArray.add(new String(msg.getPayload(), StandardCharsets.UTF_8));
+                                JSONObject jsonObject1 = new JSONObject();
+                                jsonObject1.put("text", new String(msg.getPayload(), StandardCharsets.UTF_8));
+                                jsonArray.add(jsonObject1);
+                                break;
+                            default:
+                        }
+                    }
                 }
                 CoapMessage response = new CoapMessage(
                         Constants.COAP_VERSION,
@@ -58,10 +72,10 @@ public class CoapGetHandler implements CoapPacketHandler<CoapRequestMessage> {
                         CoapMessageCode.CONTENT,
                         coapMessage.getMessageId(),
                         coapMessage.getToken(),
-                        null,
                         jsonArray.toString().getBytes(StandardCharsets.UTF_8),
                         coapMessage.getRemoteAddress()
                 );
+                response.addOption(new CoapMessageOption(CoapMessageOptionNumber.CONTENT_FORMAT, CoapMessageContentFormat.APPLICATION_JSON.toByteArray()));
                 ctx.writeAndFlush(response);
             }
         }

@@ -29,7 +29,6 @@ public class CoapMessageOption {
         this(CoapMessageOptionNumber.valueOf(optionNumber), optionValue);
     }
 
-
     public CoapMessageOptionNumber getOptionNumber() {
         return optionNumber;
     }

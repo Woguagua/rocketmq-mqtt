@@ -22,6 +22,7 @@ import org.apache.rocketmq.common.message.MessageClientIDSetter;
 import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.facade.LmqQueueStore;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
+import org.apache.rocketmq.mqtt.common.model.Constants;
 import org.apache.rocketmq.mqtt.common.model.Message;
 import org.apache.rocketmq.mqtt.common.model.StoreResult;
 import org.apache.rocketmq.mqtt.common.util.MessageUtil;
@@ -62,6 +63,7 @@ public class CoapPostProcessor implements CoapUpstreamProcessor {
         Message message = MessageUtil.toMessage(coapMessage);
         message.setMsgId(msgId);
         message.setBornTimestamp(bornTime);
+        message.putUserProperty(Constants.PROPERTY_COAP_CONTENT_FORMAT, String.valueOf(coapMessage.getContentFormat().value()));
 
         return lmqQueueStore.putCoapMessage(queueNames, message);
 
