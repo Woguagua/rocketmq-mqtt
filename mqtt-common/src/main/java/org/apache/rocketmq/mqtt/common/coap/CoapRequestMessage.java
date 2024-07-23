@@ -18,9 +18,9 @@
 package org.apache.rocketmq.mqtt.common.coap;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 
-public class CoapRequestMessage extends CoapMessage{
+public class CoapRequestMessage extends CoapMessage {
+
     String uriPath;
 
     public CoapRequestMessage(int version, CoapMessageType type, int tokenLength, CoapMessageCode code, int messageId, byte[] token, byte[] payload, InetSocketAddress remoteAddress) {

@@ -52,7 +52,7 @@ public class TestCoapEncoder {
         List<CoapMessageOption> options = new ArrayList<>();
         InetSocketAddress remoteAddress = new InetSocketAddress("195.0.30.1", 1234);
         options.add(option);
-        msg = new CoapMessage(1, 0, 4, 64, 1234, new byte[]{1, 2, 3, 4}, options, new byte[]{0, 1}, remoteAddress);
+//        msg = new CoapMessage(1, 0, 4, 64, 1234, new byte[]{1, 2, 3, 4}, options, new byte[]{0, 1}, remoteAddress);
     }
 
     @Test

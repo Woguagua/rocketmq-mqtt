@@ -20,7 +20,14 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.channel.ChannelHandlerContext;
-import org.apache.rocketmq.mqtt.common.coap.*;
+
+import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageContentFormat;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageType;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageCode;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageOption;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageOptionNumber;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.mqtt.common.model.Constants;
 import org.apache.rocketmq.mqtt.common.model.Message;

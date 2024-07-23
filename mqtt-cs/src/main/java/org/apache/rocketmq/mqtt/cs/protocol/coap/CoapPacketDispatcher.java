@@ -19,7 +19,6 @@ package org.apache.rocketmq.mqtt.cs.protocol.coap;
 import io.netty.channel.ChannelException;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
 import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.CoapUpstreamHookManager;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;

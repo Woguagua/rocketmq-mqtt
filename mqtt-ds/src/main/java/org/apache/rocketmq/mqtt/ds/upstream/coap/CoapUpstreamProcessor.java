@@ -15,7 +15,6 @@ package org.apache.rocketmq.mqtt.ds.upstream.coap;/*
  * limitations under the License.
  */
 
-import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
 import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.remoting.exception.RemotingException;

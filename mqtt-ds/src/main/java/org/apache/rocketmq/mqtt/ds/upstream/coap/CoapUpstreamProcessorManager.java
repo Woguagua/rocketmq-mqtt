@@ -21,7 +21,6 @@ import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.CoapUpstreamHook;
 import org.apache.rocketmq.mqtt.common.hook.Hook;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
 import org.apache.rocketmq.mqtt.ds.upstream.coap.processor.CoapDeleteProcessor;
 import org.apache.rocketmq.mqtt.ds.upstream.coap.processor.CoapGetProcessor;
 import org.apache.rocketmq.mqtt.ds.upstream.coap.processor.CoapPostProcessor;

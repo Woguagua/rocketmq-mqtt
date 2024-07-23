@@ -32,10 +32,8 @@ import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.util.CharsetUtil;
 import org.apache.rocketmq.common.message.MessageDecoder;
-import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
 import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.model.Message;
-import org.apache.rocketmq.mqtt.common.model.MqttTopic;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

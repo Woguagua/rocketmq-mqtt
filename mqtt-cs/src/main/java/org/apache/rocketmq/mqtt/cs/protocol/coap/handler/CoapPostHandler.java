@@ -17,13 +17,17 @@
 package org.apache.rocketmq.mqtt.cs.protocol.coap.handler;
 
 import io.netty.channel.ChannelHandlerContext;
-import org.apache.rocketmq.mqtt.common.coap.*;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageCode;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageContentFormat;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageOption;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageOptionNumber;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageType;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
 import org.apache.rocketmq.mqtt.common.hook.HookResult;
 import org.apache.rocketmq.mqtt.common.model.Constants;
 import org.apache.rocketmq.mqtt.cs.protocol.CoapPacketHandler;
 import org.springframework.stereotype.Component;
-
-import java.nio.charset.StandardCharsets;
 
 @Component
 public class CoapPostHandler implements CoapPacketHandler<CoapRequestMessage> {

@@ -20,14 +20,18 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import org.apache.rocketmq.mqtt.common.coap.*;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageCode;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageOptionNumber;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageType;
+import org.apache.rocketmq.mqtt.common.coap.CoapRequestMessage;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageOption;
+import org.apache.rocketmq.mqtt.common.coap.CoapMessageContentFormat;
 import org.apache.rocketmq.mqtt.common.model.Constants;
 
 
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 // todo: Dealing with messageID and token when the request is wrong.

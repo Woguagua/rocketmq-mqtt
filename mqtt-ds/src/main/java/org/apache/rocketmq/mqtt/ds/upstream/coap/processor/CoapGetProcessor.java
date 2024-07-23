@@ -35,7 +35,6 @@ import javax.annotation.Resource;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class CoapGetProcessor implements CoapUpstreamProcessor {

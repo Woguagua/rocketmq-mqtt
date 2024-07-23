@@ -27,9 +27,9 @@ public enum CoapMessageContentFormat {
     private static final CoapMessageContentFormat[] VALUES;
     private final int value;
 
-    private CoapMessageContentFormat(int value) {this.value = value;}
+    private CoapMessageContentFormat(int value) { this.value = value; }
 
-    public int value() {return this.value;}
+    public int value() { return this.value; }
 
     public static CoapMessageContentFormat valueOf(int number) {
         if (number >= 0 && number < VALUES.length && VALUES[number] != null) {
@@ -48,10 +48,7 @@ public enum CoapMessageContentFormat {
             return new byte[]{(byte) value};
         } else {
             // Use 2 bytes if the value needs more than 1 byte
-            return new byte[]{
-                    (byte) (value >> 8),
-                    (byte) value
-            };
+            return new byte[]{(byte) (value >> 8), (byte) value};
         }
     }
 

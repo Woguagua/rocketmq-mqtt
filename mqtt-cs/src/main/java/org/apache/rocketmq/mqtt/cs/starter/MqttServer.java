@@ -53,7 +53,6 @@ import org.apache.rocketmq.mqtt.cs.protocol.ChannelPipelineLazyInit;
 import org.apache.rocketmq.mqtt.cs.protocol.MqttVersionHandler;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapDecoder;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapEncoder;
-import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapHandler;
 import org.apache.rocketmq.mqtt.cs.protocol.coap.CoapPacketDispatcher;
 import org.apache.rocketmq.mqtt.cs.protocol.mqtt.MqttPacketDispatcher;
 import org.apache.rocketmq.mqtt.cs.protocol.mqtt5.Mqtt5PacketDispatcher;
